@@ -3,6 +3,7 @@ package com.example.demo.model;
 import java.sql.Date;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "orders")
@@ -11,15 +12,16 @@ public class Order {
     @GeneratedValue
     private Long id;
 
+    @NotBlank
     private String name;
     private String notes;
     private Integer unit;
     private String customer;
+    @NotBlank
     private String address;
     private Date date;
     
     public Order(){
-        
     }
 
     public Order(Long id, String name, String notes, Integer unit, String customer, String address, Date date){

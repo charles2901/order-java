@@ -3,11 +3,14 @@ package com.example.demo.controller;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
+import com.example.demo.exception.OrderException;
 import com.example.demo.model.Order;
 import com.example.demo.repository.OrderRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,13 +26,15 @@ public class OrderController {
     @Autowired
     OrderRepository orderRepository;
 
-    @GetMapping("/order")
-    public List<Order> getAllOrderByCustomer(@RequestBody Order order){
-        return orderRepository.findAll(Example.of(order));
+    @GetMapping("/order/{customer}")
+    public List<Order> getAllOrders(@PathVariable(value="customer") String customer){
+        List<Order> orders = orderRepository.findOrderByCustomer(customer);
+        if(orders.isEmpty()) throw new OrderException();
+        return orders;
     }
 
     @PostMapping("/order")
-    public ResponseEntity<String> message(@RequestBody Order order){
+    public ResponseEntity<String> message(@Valid @NotNull @RequestBody Order order){
         orderRepository.save(order);
         return ResponseEntity.status(HttpStatus.OK).body("Your order has been sent successfully, your registration number is ".concat(order.getId().toString()));
     }
@@ -37,6 +42,7 @@ public class OrderController {
     @PatchMapping("/order/{id}")
     public Order changeUnitById(@PathVariable(value="id") Long orderId, @RequestBody Order order){
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
+        if(optionalOrder.isPresent() == false) throw new OrderException();
         Order changedOrder = optionalOrder.get();
         changedOrder.setUnit(order.getUnit());
         return orderRepository.save(changedOrder);
